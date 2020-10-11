@@ -16,9 +16,15 @@
 
 #include <YetAnotherPcInt.h>
 #include <Keyboard.h>
+#include <elapsedMillis.h>
 
-volatile long reader1 = 0;
+elapsedMillis LED1millis;
+
+unsigned int LED1_Interval = 2000;
+unsigned volatile long reader1 = 0;
 volatile int reader1Count = 0;
+const int LEDpin = 7;
+
 void reader1One(bool pinstate) {
   if (pinstate == LOW) {
     reader1Count++;
@@ -37,24 +43,26 @@ void reader1Zero(bool pinstate) {
 void setup() {
   //Serial.begin(115200);
   Keyboard.begin();
-  pinMode(7, OUTPUT);
+  pinMode(LEDpin, OUTPUT);
   pinMode(8, INPUT_PULLUP);
   pinMode(9, INPUT_PULLUP);
   PcInt::attachInterrupt(8, reader1One, CHANGE);
   PcInt::attachInterrupt(9, reader1Zero, CHANGE);
   reader1 = 0;
   reader1Count = 0;
-  digitalWrite(7, HIGH);
+  digitalWrite(LEDpin, HIGH);
 }
 
 void loop() {
   if (reader1Count >= 26) {
+    digitalWrite(LEDpin, LOW);
+    LED1millis = 0;
     //Serial.println(reader1);
     Keyboard.println(reader1);
-    digitalWrite(7, LOW);
     reader1 = 0;
     reader1Count = 0;
-    delay(1000);
-    digitalWrite(7, HIGH);
+  }
+  if (LED1millis >= LED1_Interval){
+    digitalWrite(LEDpin, HIGH);
   }
 }
